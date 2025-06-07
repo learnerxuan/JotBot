@@ -22,7 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userId, isAuthReady }) => {
 
   return (
     <div className="w-full md:w-64 bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 md:p-8 rounded-lg shadow-xl m-2">
-      <h2 className="text-3xl font-extrabold mb-8 text-center tracking-tight">MoodLingo</h2>
+      <h2 className="text-3xl font-extrabold mb-8 text-center tracking-tight">JotBot</h2>
       <nav>
         {navItems.map((item) => (
           <Link href={item.path} key={item.id} passHref>
