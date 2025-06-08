@@ -1,7 +1,7 @@
 // pages/prompts.tsx
 import React from 'react';
 
-export default function MindfulMomentsPage(): JSX.Element {
+export default function MindfulMomentsPage() {
   return (
     <div className="flex flex-col h-full">
       <h1 className="text-4xl font-extrabold text-yellow-800 mb-8 text-center md:text-left">Mindful Moment Prompts</h1>

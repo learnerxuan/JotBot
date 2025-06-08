@@ -1,7 +1,7 @@
 // pages/garden.tsx
 import React from 'react';
 
-export default function EmotionGardenPage(): JSX.Element {
+export default function EmotionGardenPage() {
   return (
     <div className="flex flex-col h-full">
       <h1 className="text-4xl font-extrabold text-green-800 mb-8 text-center md:text-left">Dynamic Emotion Garden</h1>
