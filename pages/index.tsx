@@ -1,7 +1,7 @@
 // pages/index.tsx
 import React from 'react';
 
-export default function Home() {
+export default function Home(): JSX.Element {
   return (
     <div className="text-center text-gray-500 py-16">
       <h1 className="text-5xl font-extrabold text-purple-800 mb-6 tracking-tight">Welcome to MoodLingo! 🌈</h1>

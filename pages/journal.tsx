@@ -2,7 +2,6 @@
 import React, { useState, useMemo } from 'react';
 import { useFirebase } from '../context/FirebaseContext';
 import JournalModal from '../components/JournalModal';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Define the JournalEntry type for better type safety
 interface JournalEntry {
@@ -12,7 +11,7 @@ interface JournalEntry {
   content: string; // Full content for viewing
 }
 
-export default function JournalPage() {
+export default function JournalPage(): JSX.Element {
   const { userId, isAuthReady } = useFirebase();
 
   // State for controlling the modal's visibility
@@ -72,31 +71,6 @@ export default function JournalPage() {
     setSelectedJournal(null); // Clear selected journal when closing
   };
 
-const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
-
-const handleAIFeedback = async (content: string) => {
-  let reply: string | undefined;
-  try {
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-preview-05-20' });
-
-    // Actual "ask AI then AI answers" process is here
-    const prompt = `Following is the content of a human-written diary: ${content}. Read it, then give a simple feedback of it, and respond to it like you're talking to the user who wrote the content. Simply your response to a sentence and only use that as your output.`;
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    reply = response.text();
-    
-  } catch (error) {
-    console.error("Error connecting to Gemini AI:", error);
-    reply = undefined;
-  }
-  if (reply) {
-    console.log("AI Reply:", reply);
-  } else {
-    console.log("error")
-  }
-};
-
   return (
     <div className="flex flex-col h-full">
       <h1 className="text-4xl font-extrabold text-indigo-800 mb-8 text-center md:text-left">Smart Emotional Journal</h1>
@@ -155,7 +129,6 @@ const handleAIFeedback = async (content: string) => {
         initialTitle={selectedJournal?.title || ''}
         initialContent={selectedJournal?.content || ''}
         isViewMode={selectedJournal !== null}
-        onAIFeedbackClick={handleAIFeedback}
       />
     </div>
   );

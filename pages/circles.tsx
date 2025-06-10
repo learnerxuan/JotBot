@@ -1,7 +1,7 @@
 // pages/circles.tsx
 import React from 'react';
 
-export default function PeerSupportPage() {
+export default function PeerSupportPage(): JSX.Element {
   return (
     <div className="flex flex-col h-full">
       <h1 className="text-4xl font-extrabold text-blue-800 mb-8 text-center md:text-left">Anonymous Peer Support Circles</h1>

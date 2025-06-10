@@ -11,7 +11,6 @@ interface JournalModalProps {
   initialTitle?: string;
   initialContent?: string;
   isViewMode?: boolean; // New prop to indicate if it's in view mode
-  onAIFeedbackClick?: (content: string) => void;
 }
 
 const JournalModal: React.FC<JournalModalProps> = ({
@@ -22,7 +21,6 @@ const JournalModal: React.FC<JournalModalProps> = ({
   initialTitle = '',
   initialContent = '',
   isViewMode = false,
-  onAIFeedbackClick,
 }) => {
   const [title, setTitle] = useState<string>(initialTitle);
   const [content, setContent] = useState<string>(initialContent);
@@ -45,12 +43,6 @@ const JournalModal: React.FC<JournalModalProps> = ({
       onIJournalClick(title, content);
     }
   };
-
-  const handleAIFeedback = () =>  {
-    if (onAIFeedbackClick) {
-      onAIFeedbackClick(content)
-    }
-  }
 
   return (
     // Overlay background - changed from black to a light gray/white with higher opacity
@@ -94,20 +86,12 @@ const JournalModal: React.FC<JournalModalProps> = ({
         {/* Action Buttons - Conditional rendering based on isViewMode */}
         <div className="mt-6 flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4">
           {isViewMode ? (
-            <>            
-            <button
-            onClick={handleAIFeedback}
-            className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-indigo-700 transition-colors flex items-center justify-center"
-            >
-              AI
-            </button>
             <button
               onClick={onClose}
               className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-indigo-700 transition-colors flex items-center justify-center"
             >
               Close
             </button>
-            </>
           ) : (
             <>
               <button

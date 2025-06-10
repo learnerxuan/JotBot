@@ -24,11 +24,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
   const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
 
   useEffect(() => {
-
-    const __app_id = process.env.NEXT_PUBLIC_APP_ID || 'default-app-id';
-    const __firebase_config = process.env.NEXT_PUBLIC_FIREBASE_CONFIG || '{}';
-    const __initial_auth_token = process.env.NEXT_PUBLIC_INITIAL_AUTH_TOKEN || null;
-
     const appId = process.env.NEXT_PUBLIC_APP_ID || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
     const firebaseConfigString = process.env.NEXT_PUBLIC_FIREBASE_CONFIG || (typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
     let firebaseConfig: object = {};
