@@ -1,7 +1,7 @@
 // pages/journal.tsx
 import React, { useState, useMemo } from 'react';
 import { useFirebase } from '../context/FirebaseContext';
-import JournalModal from '../components/JournalModal';
+import Link from 'next/link'; // Import Link for navigation
 
 // Define the JournalEntry type for better type safety
 interface JournalEntry {
@@ -14,13 +14,6 @@ interface JournalEntry {
 export default function JournalPage(): JSX.Element {
   const { userId, isAuthReady } = useFirebase();
 
-  // State for controlling the modal's visibility
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  // State to hold the journal entry being viewed/edited (null for new entry)
-  const [selectedJournal, setSelectedJournal] = useState<JournalEntry | null>(null);
-  // State for the search bar input
-  const [searchTerm, setSearchTerm] = useState<string>('');
-
   // Placeholder data for the list of journal entries
   // In a real app, this would be fetched from Firestore
   const [allJournalEntries, setAllJournalEntries] = useState<JournalEntry[]>([
@@ -30,6 +23,8 @@ export default function JournalPage(): JSX.Element {
     { id: '4', date: 'May 30, 2025', title: 'A quiet evening of reflection', content: 'The rain outside made for a perfect evening to just sit and think. No particular stress, just a calm and peaceful atmosphere. I brewed some tea and read a good book. Simple moments like these are truly precious. 心累 sometimes, but not tonight.' },
   ]);
 
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
   // Filtered journal entries based on search term
   const filteredJournalEntries = useMemo(() => {
     if (!searchTerm) {
@@ -38,38 +33,10 @@ export default function JournalPage(): JSX.Element {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
     return allJournalEntries.filter(entry =>
       entry.title.toLowerCase().includes(lowerCaseSearchTerm) ||
-      entry.date.toLowerCase().includes(lowerCaseSearchTerm)
+      entry.date.toLowerCase().includes(lowerCaseSearchTerm) ||
+      entry.content.toLowerCase().includes(lowerCaseSearchTerm) // Also search content for better filtering
     );
-  }, [allJournalEntries, searchTerm]);
-
-  const handleSaveJournal = (title: string, content: string) => {
-    // In a real implementation, you'd send this to your Next.js API route to save to Firestore
-    console.log('Saving Journal:', { title, content });
-
-    const newEntry: JournalEntry = {
-      id: String(Date.now()), // Simple unique ID for placeholder
-      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-      title: title || 'Untitled Journal',
-      content: content,
-    };
-    setAllJournalEntries(prev => [newEntry, ...prev]);
-    setIsModalOpen(false);
-    setSelectedJournal(null); // Clear selected journal
-  };
-
-  const handleIJournalClick = (title: string, content: string) => {
-    console.log('Running IJournal function for:', { title, content });
-  };
-
-  const handleViewJournal = (entry: JournalEntry) => {
-    setSelectedJournal(entry);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedJournal(null); // Clear selected journal when closing
-  };
+  }, [allJournalEntries, searchTerm]); // Recalculate only when allJournalEntries or searchTerm changes
 
   return (
     <div className="flex flex-col h-full">
@@ -79,10 +46,10 @@ export default function JournalPage(): JSX.Element {
       <div className="mb-8 relative">
         <input
           type="text"
-          placeholder="Search journals by title or date..."
+          placeholder="Search journals by title, date, or content..."
           className="w-full p-4 pl-12 border border-gray-300 rounded-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-lg font-normal"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => setSearchTerm(e.target.value)} // Update search term state
         />
         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl">🔍</span>
       </div>
@@ -94,42 +61,31 @@ export default function JournalPage(): JSX.Element {
           <p className="text-gray-500 italic text-center py-8">No journal entries found matching your search.</p>
         ) : (
           filteredJournalEntries.map(entry => (
-            <div
-              key={entry.id}
-              className="bg-white p-5 rounded-xl shadow-md border border-indigo-200 flex items-center justify-between transition-transform transform hover:scale-[1.01] cursor-pointer"
-              onClick={() => handleViewJournal(entry)}
-            >
-              <div>
-                <p className="text-sm text-gray-500">{entry.date}</p>
-                <h3 className="text-xl font-semibold text-indigo-800">{entry.title}</h3>
-              </div>
-            </div>
+            <Link href={`/journal/${entry.id}`} key={entry.id} passHref legacyBehavior>
+              <a
+                className="bg-white p-5 rounded-xl shadow-md border border-indigo-200 flex items-center justify-between transition-transform transform hover:scale-[1.01] cursor-pointer no-underline text-current"
+                aria-label={`View journal: ${entry.title}`}
+              >
+                <div>
+                  <p className="text-sm text-gray-500">{entry.date}</p>
+                  <h3 className="text-xl font-semibold text-indigo-800">{entry.title}</h3>
+                </div>
+              </a>
+            </Link>
           ))
         )}
       </div>
 
-      {/* Floating Action Button to Add New Journal */}
-      <button
-        onClick={() => {
-          setSelectedJournal(null);
-          setIsModalOpen(true);
-        }}
-        className="fixed bottom-8 right-8 bg-indigo-600 text-white rounded-full p-5 text-4xl shadow-xl hover:bg-indigo-700 transition-transform transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-indigo-300 z-40"
-        aria-label="Add New Journal"
-      >
-        +
-      </button>
-
-      {/* Journal Modal Component */}
-      <JournalModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSave={handleSaveJournal}
-        onIJournalClick={handleIJournalClick}
-        initialTitle={selectedJournal?.title || ''}
-        initialContent={selectedJournal?.content || ''}
-        isViewMode={selectedJournal !== null}
-      />
+      {/* Floating Action Button to Add New Journal - Now navigates to a new page */}
+      <Link href="/new-journal" passHref legacyBehavior>
+        <a
+          role="button"
+          aria-label="Add New Journal"
+          className="fixed bottom-8 right-8 bg-indigo-600 text-white rounded-full p-5 text-4xl shadow-xl hover:bg-indigo-700 transition-transform transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-indigo-300 z-40 no-underline"
+        >
+          +
+        </a>
+      </Link>
     </div>
   );
 }
