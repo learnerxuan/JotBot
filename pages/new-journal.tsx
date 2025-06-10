@@ -14,6 +14,9 @@ export default function NewJournalPage(): JSX.Element {
   const handleSaveJournal = () => {
     // In a real implementation, you'd send this data to your Next.js API route to save to Firestore
     console.log('Saving New Journal:', { title, content });
+    // You would typically make a fetch request to another API route for saving
+    // Example: fetch('/api/save-journal', { method: 'POST', body: JSON.stringify({ title, content }) });
+
     alert('Journal Saved! (This is a placeholder action)'); // Replace with proper UI confirmation
 
     // After saving, navigate back to the journal list
@@ -21,25 +24,40 @@ export default function NewJournalPage(): JSX.Element {
   };
 
   const handleIJournalClick = async () => {
+    // Do not proceed if content is empty or already loading
+    if (content.trim() === '' || isLoadingAi) {
+      return;
+    }
+
     setIsLoadingAi(true);
-    setShowAiResponse(true); // Immediately show the AI response section with loading state
+    setShowAiResponse(true); // Show the AI response section
     setAiResponseContent('MoodLingo is crafting your insights...'); // Set loading message
 
-    // Simulate AI API call delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Make a fetch request to your new AI API route
+      const response = await fetch('/api/generate-insight', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, content }), // Send the journal content
+      });
 
-    // Mock AI Response (replace with actual API call to your /api/journal endpoint)
-    // The AI would analyze 'title' and 'content' and return insights.
-    const mockResponses = [
-      "It seems you've expressed a lot of **stress** in your entry. Taking a few moments to practice deep breathing might be helpful. Remember, it's okay to feel overwhelmed, and acknowledging it is the first step towards managing it.",
-      "Your entry shows signs of **reflection and growth**. Keep nurturing this self-awareness. Perhaps consider journaling about what specifically contributed to these positive feelings today, to reinforce them.",
-      "The themes of **challenge and perseverance** are strong here. You're navigating difficulties with resilience. Don't forget to celebrate the small victories in your journey. A short mindful walk could clear your mind further.",
-      "There's a sense of **calm and peace** in your writing. Cherish these moments. Perhaps reflect on what brought you this peace and how you can invite more of it into your everyday life."
-    ];
-    const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
+      const data = await response.json();
 
-    setAiResponseContent(randomResponse);
-    setIsLoadingAi(false);
+      if (response.ok) {
+        // If the API call was successful, display the AI insight
+        setAiResponseContent(data.insight);
+      } else {
+        // If there was an error from the API route
+        setAiResponseContent(`Error: ${data.error || 'Something went wrong with AI insight generation.'}`);
+      }
+    } catch (error) {
+      console.error("Client-side error calling generate-insight API:", error);
+      setAiResponseContent("Failed to connect to AI. Please check your network or try again.");
+    } finally {
+      setIsLoadingAi(false); // Always set loading to false when done
+    }
   };
 
   return (
@@ -49,7 +67,7 @@ export default function NewJournalPage(): JSX.Element {
         <Link href="/journal" passHref legacyBehavior>
           <a
             role="button"
-            className="bg-gray-200 text-gray-700 px-5 py-3 rounded-xl font-semibold shadow-md hover:bg-gray-300 transition-colors flex items-center"
+            className="bg-gray-200 text-gray-700 px-5 py-3 rounded-xl font-semibold shadow-md hover:bg-gray-300 transition-colors flex items-center no-underline"
             aria-label="Back to Journal List"
           >
             <span className="text-xl mr-2">←</span> Back to List
@@ -95,10 +113,10 @@ export default function NewJournalPage(): JSX.Element {
       {/* AI Response Area - Conditionally displayed */}
       {showAiResponse && (
         <div className="bg-white p-6 rounded-2xl shadow-xl border border-blue-200">
-          <h2 className="text-2xl font-bold text-indigo-700 mb-4 text-center">Your JotBot Insights ✨</h2>
+          <h2 className="text-2xl font-bold text-indigo-700 mb-4 text-center">Your MoodLingo Insights ✨</h2>
           {isLoadingAi ? (
             <div className="text-center text-gray-500 text-lg py-4 animate-pulse">
-              <p>JotBot is crafting your insights...</p>
+              <p>MoodLingo is crafting your insights...</p>
               <p className="text-4xl mt-2">🧠</p>
             </div>
           ) : (
