@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 
 interface PlantVisualProps {
   emotion: string;
@@ -28,15 +29,16 @@ const PlantVisual: React.FC<PlantVisualProps> = ({ emotion, intensity, date, jou
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      {/* SVG or Emoji for now, can be replaced with animated SVGs */}
-      <div
+      <motion.div
         className="w-16 h-16 flex items-center justify-center rounded-full shadow-lg"
         style={{ backgroundColor: plantConfig.color, transition: 'background 0.3s' }}
+        whileHover={{ scale: 1.1 }}
+        transition={{ type: 'spring', stiffness: 300 }}
       >
         <span className="text-3xl">
           {emotionEmoji[emotion] || '🌱'}
         </span>
-      </div>
+      </motion.div>
       <div className="text-xs text-gray-500 mt-2">{date}</div>
       {/* Tooltip */}
       {showTooltip && (

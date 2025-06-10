@@ -3,6 +3,7 @@ import { useFirebase } from '../context/FirebaseContext';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import PlantVisual from './PlantVisual';
 import { mapEmotionToPlant } from './mapEmotionToPlant';
+import { motion } from 'framer-motion';
 
 interface EmotionSnapshot {
   date: string;
@@ -40,23 +41,39 @@ const EmotionGarden: React.FC = () => {
   if (!snapshots.length) return <div className="text-center py-8">No emotion data found for the past week.</div>;
 
   return (
-    <div className="w-full overflow-x-auto py-6">
-      <div className="flex flex-row items-end min-w-max">
+    <motion.div
+      className="w-full overflow-x-auto py-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div
+        className="flex flex-row items-end min-w-max"
+        initial={{ y: 20 }}
+        animate={{ y: 0 }}
+        transition={{ staggerChildren: 0.1 }}
+      >
         {snapshots.map((snap, idx) => {
           const plantConfig = mapEmotionToPlant(snap.dominantEmotion, snap.intensity);
           return (
-            <PlantVisual
+            <motion.div
               key={snap.date}
-              emotion={snap.dominantEmotion}
-              intensity={snap.intensity}
-              date={snap.date}
-              journalSummary={snap.journalSummary}
-              plantConfig={plantConfig}
-            />
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+            >
+              <PlantVisual
+                emotion={snap.dominantEmotion}
+                intensity={snap.intensity}
+                date={snap.date}
+                journalSummary={snap.journalSummary}
+                plantConfig={plantConfig}
+              />
+            </motion.div>
           );
         })}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
