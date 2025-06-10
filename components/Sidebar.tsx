@@ -14,8 +14,9 @@ const Sidebar: React.FC<SidebarProps> = ({ userId, isAuthReady }) => {
   const getActivePageId = (pathname: string): string => {
     if (pathname === '/') return 'home'; // Special case for HomePage
     const parts = pathname.split('/');
-    const navItemIds = ['journal', 'garden', 'circles', 'prompts']; // Include all possible IDs
-    if (parts[1] && navItemIds.includes(parts[1])) {
+    // Check if parts[1] exists and is one of our nav item IDs
+    // Also handle dynamic routes like /journal/[id]
+    if (parts[1] && ['journal', 'garden', 'circles', 'prompts'].includes(parts[1])) {
       return parts[1];
     }
     return 'home'; // Fallback to 'home' if no specific page part or unknown
@@ -35,7 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userId, isAuthReady }) => {
   return (
     <div className="w-full md:w-64 bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 md:p-8 rounded-lg shadow-xl m-2 flex flex-col justify-between relative z-20">
       <div>
-        <h2 className="text-3xl font-extrabold mb-8 text-center tracking-tight">MoodLingo</h2>
+        <h2 className="text-3xl font-extrabold mb-8 text-center tracking-tight">JotBot</h2>
         <nav>
           {navItems.map((item) => (
             <Link href={item.path} key={item.id} passHref legacyBehavior>
@@ -46,8 +47,8 @@ const Sidebar: React.FC<SidebarProps> = ({ userId, isAuthReady }) => {
                   flex items-center w-full px-4 py-3 mb-4 rounded-xl text-lg font-medium transition-all duration-300
                   cursor-pointer no-underline focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50
                   ${activePageId === item.id
-                    ? 'bg-white text-indigo-700 shadow-md transform scale-105' // Active state: white background, very dark text
-                    : 'text-white hover:bg-indigo-700 hover:shadow-lg hover:text-white' // Inactive state: white text, dark indigo background on hover
+                    ? 'bg-white text-gray-900 shadow-md transform scale-105'
+                    : 'text-white hover:bg-indigo-700 hover:shadow-lg hover:text-white'
                   }
                 `}
               >
