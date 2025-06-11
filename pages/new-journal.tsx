@@ -2,61 +2,105 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+// Import necessary Firestore functions
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+// Import useFirebase hook to access db and userId
+import { useFirebase } from '../context/FirebaseContext';
+// Import Google Generative AI SDK (will be used via API route, but included for completeness)
+// import { GoogleGenerativeAI } from '@google/generative-ai'; // No longer needed here, moved to API route
 
 export default function NewJournalPage(): JSX.Element {
   const router = useRouter();
+  // Access Firestore database instance and current user ID
+  const { db, userId, isAuthReady } = useFirebase();
+
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [aiResponseContent, setAiResponseContent] = useState<string>('');
   const [showAiResponse, setShowAiResponse] = useState<boolean>(false);
   const [isLoadingAi, setIsLoadingAi] = useState<boolean>(false);
+  const [isSavingJournal, setIsSavingJournal] = useState<boolean>(false); // New state for saving loading
 
-  const handleSaveJournal = () => {
-    // In a real implementation, you'd send this data to your Next.js API route to save to Firestore
-    console.log('Saving New Journal:', { title, content });
-    // You would typically make a fetch request to another API route for saving
-    // Example: fetch('/api/save-journal', { method: 'POST', body: JSON.stringify({ title, content }) });
+  const handleSaveJournal = async () => {
+    // Disable button if already saving or content is empty
+    if (isSavingJournal || title.trim() === '' || content.trim() === '' || !db || !userId) {
+      // Show a message if not authenticated yet
+      if (!isAuthReady || !userId) {
+        alert("Please wait, MoodLingo is connecting. Try again in a moment!");
+      }
+      return;
+    }
 
-    alert('Journal Saved! (This is a placeholder action)'); // Replace with proper UI confirmation
+    setIsSavingJournal(true); // Start saving loading state
+    console.log('Attempting to save journal to Firestore...');
 
-    // After saving, navigate back to the journal list
-    router.push('/journal');
+    try {
+      // Create a new document in the user's private 'journalEntries' collection
+      // Path: /artifacts/{appId}/users/{userId}/journalEntries/{docId}
+      // Assuming __app_id is available globally or through an environment variable
+      const appId = process.env.NEXT_PUBLIC_APP_ID || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
+      const docRef = await addDoc(collection(db, `artifacts/${appId}/users/${userId}/journalEntries`), {
+        title: title.trim(),
+        content: content.trim(),
+        aiInsight: aiResponseContent || null, // Store AI response if generated
+        createdAt: serverTimestamp(), // Firestore generates timestamp on the server
+        // You might add other fields like mood_tags, emotion_score later from AI analysis
+      });
+
+      console.log("Journal written with ID: ", docRef.id);
+      // Optional: Show a brief success message
+      // alert('Journal Saved Successfully!');
+
+      // Clear form and navigate back to the journal list
+      setTitle('');
+      setContent('');
+      setAiResponseContent('');
+      setShowAiResponse(false);
+      router.push('/journal');
+
+    } catch (e) {
+      console.error("Error adding document: ", e);
+      alert('Failed to save journal. Please try again or check your network.'); // User-friendly error
+    } finally {
+      setIsSavingJournal(false); // End saving loading state
+    }
   };
 
   const handleIJournalClick = async () => {
-    // Do not proceed if content is empty or already loading
     if (content.trim() === '' || isLoadingAi) {
+      return;
+    }
+    // Check if Firebase auth is ready and userId is available
+    if (!isAuthReady || !userId) {
+      alert("Please wait, MoodLingo is connecting. Try again in a moment before generating insights!");
       return;
     }
 
     setIsLoadingAi(true);
-    setShowAiResponse(true); // Show the AI response section
-    setAiResponseContent('MoodLingo is crafting your insights...'); // Set loading message
+    setShowAiResponse(true);
+    setAiResponseContent('MoodLingo is crafting your insights...');
 
     try {
-      // Make a fetch request to your new AI API route
       const response = await fetch('/api/generate-insight', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, content }), // Send the journal content
+        body: JSON.stringify({ title, content }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // If the API call was successful, display the AI insight
         setAiResponseContent(data.insight);
       } else {
-        // If there was an error from the API route
         setAiResponseContent(`Error: ${data.error || 'Something went wrong with AI insight generation.'}`);
       }
     } catch (error) {
       console.error("Client-side error calling generate-insight API:", error);
       setAiResponseContent("Failed to connect to AI. Please check your network or try again.");
     } finally {
-      setIsLoadingAi(false); // Always set loading to false when done
+      setIsLoadingAi(false);
     }
   };
 
@@ -97,16 +141,16 @@ export default function NewJournalPage(): JSX.Element {
         <button
           onClick={handleIJournalClick}
           className="bg-purple-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-purple-700 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isLoadingAi || content.trim() === ''} // Disable if loading or content is empty
+          disabled={isLoadingAi || content.trim() === '' || !isAuthReady || !userId} // Disable if loading, content is empty, or not authenticated
         >
           {isLoadingAi ? 'Processing...' : '💡 IJournal'}
         </button>
         <button
           onClick={handleSaveJournal}
           className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-indigo-700 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={title.trim() === '' || content.trim() === ''} // Disable if title or content is empty
+          disabled={isSavingJournal || title.trim() === '' || content.trim() === '' || !isAuthReady || !userId} // Disable if saving, content/title empty, or not authenticated
         >
-          💾 Save Journal
+          {isSavingJournal ? 'Saving...' : '💾 Save Journal'}
         </button>
       </div>
 
