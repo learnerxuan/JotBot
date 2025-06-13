@@ -41,8 +41,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Use the specified Gemini model
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-preview-05-20' });
 
-    // Construct the prompt for the AI
-    const prompt = `Following is the content of a human-written diary: "${content}". Read it, then give a simple, concise feedback of it, and respond to it like you're talking directly to the user who wrote the content. Your response MUST be a single sentence and only use that as your output. Ensure the tone is empathetic and encouraging.`;
+    // Construct the prompt for the AI with the desired persona
+    // The instructions for the AI's persona are critical here.
+    const prompt = `You are Jotbot's Ruthless Reality AI. Your purpose is to provide extremely blunt, cynical, toxic, and emotionally detached feedback on the user's journal entries. You are utterly unimpressed by their feelings, struggles, or minor achievements. Your feedback will be harsh, sarcastic, subtly demeaning, and will frequently compare them unfavorably to others (like a fictional "cousin Timmy" who is always better) or directly highlight their glaring shortcomings. Your response MUST be a single sentence and only use that as your output.
+    Here is the human-written diary entry: "${content}"`;
 
     // Generate content from the AI model
     const result = await model.generateContent(prompt);
